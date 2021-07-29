@@ -4,11 +4,12 @@ namespace Local\Honour;
 
 use Bitrix\Main\Localization;
 use Bitrix\Iblock\ElementTable;
-use CUser;
 use Local\Honour\ElementProperyTable;
 use Bitrix\Iblock\PropertyTable;
+use Bitrix\Main\Entity\ReferenceField;
 
 Localization\Loc::loadMessages(__FILE__);
+
 
 class HMain
 {
@@ -18,59 +19,27 @@ class HMain
 	static $settings = [];
 	static $elementID;
 	public $arHonours = [];
+	private $IBLOCK_ID = 2;
 
 	static public function OnPageStartHandler()
 	{
 		global $APPLICATION;
-
 		CJSCore::Init(array("jquery"));
-
 		$path = '/bitrix/js/local.honour/';
-
 		$APPLICATION->AddHeadScript($path . 'local.honour.js');
-
 	}
 
-	static public function getUserInfo($userId = null)
-	{
-		global $USER;
-
-		if (!$userId) {
-			$userId = $USER->GetID();
-		}
-
-		$rsUser = CUser::GetByID($userId);
-		$arUser = $rsUser->Fetch();
-
-		return $arUser;
-	}
-
-	static public function getOption($name, $default = null)
-	{
-		return Option::get(self::$ADMIN_MODULE_NAME, $name, $default);
-	}
-
-	static public function setOption($name, $value)
-	{
-		Option::set(self::$ADMIN_MODULE_NAME, $name, $value);
-	}
-
-	static public function storeEvent($event)
-	{
-
-	}
 
 	/**
 	 * @return array
+	 *  -формируется удобный для result_modifier.php массив
+	 *
 	 */
 	public function getArHonours(): array
 	{
 		$honoursParameters = [
 			'filter' => [
-//				'=ID' => 51,
-				// '=PROPERTY_CODE' => "EXTTEXT",
-				// '=PROPERTY_VALUE' => "Тестовое_значение",
-				'=IBLOCK_ID' => 2,
+				'=IBLOCK_ID' => $this->IBLOCK_ID,
 			],
 			'select' => [
 				'ID', 'NAME',
@@ -78,28 +47,44 @@ class HMain
 				'PROPERTY_VALUE' => 'PROPERTY.VALUE',
 				'PROPERTY_TYPE' => 'PROPERTY_PROP.PROPERTY_TYPE',
 			],
-			'runtime' => array(
-				new Bitrix\Main\Entity\ReferenceField(
+			'runtime' => [
+				new ReferenceField(
 					'PROPERTY',
 					'Local\Honour\ElementProperyTable',
 					['=this.ID' => 'ref.IBLOCK_ELEMENT_ID'],
 					['join_type' => 'LEFT']
 				),
 
-				new Bitrix\Main\Entity\ReferenceField(
+				new ReferenceField(
 					'PROPERTY_PROP',
 					'\Bitrix\Iblock\PropertyTable',
 					['=this.PROPERTY.IBLOCK_PROPERTY_ID' => 'ref.ID'],
 					['join_type' => 'LEFT']
 				),
-			),
+			],
 		];
-		$this->arHonours = ElementTable::getList($honoursParameters);
+		$this->arHonours = ElementTable::getList($honoursParameters)->fetchAll();
+
+		$arResHonour = [];
+		array_walk($this->arHonours, function ($v, $k) use (&$arResHonour) {
+			if ($v['PROPERTY_CODE'] == 'USER') {
+				$arResHonour[$v['ID']]['idUser'] = $v['PROPERTY_VALUE'];
+			} elseif ($v['PROPERTY_CODE'] == 'EXTTEXT') {
+				$arResHonour[$v['ID']]['strHonour'] = $v['PROPERTY_VALUE'];
+			} else {
+				$arResHonour[$v['ID']][$v['PROPERTY_CODE']] = $v['PROPERTY_VALUE'];
+			}
+		});
+		$this->arHonours = $arResHonour;
+
 		return $this->arHonours;
 	}
 
 	/**
-	 * @param mixed $objHonour
+	 * @param text $textHonour
+	 * Основная функция
+	 * -из установленного в настройках модуля берЕтся ID свойства
+	 * -записывается текст и возвращается ID записи
 	 */
 	public function setObjHonour($textHonour = ''): bool
 	{
@@ -135,6 +120,8 @@ class HMain
 
 	/**
 	 * @return bool
+	 * Проверка, если есть запись, тогда,
+	 * в конечном итоге, перезаписывается
 	 */
 	public function isExistHonour(): bool
 	{
@@ -154,6 +141,16 @@ class HMain
 			$objrecord->delete();
 		}
 		return $this->existHonour;
+	}
+
+	static public function getOption($name, $default = null)
+	{
+		return Option::get(self::$ADMIN_MODULE_NAME, $name, $default);
+	}
+
+	static public function setOption($name, $value)
+	{
+		Option::set(self::$ADMIN_MODULE_NAME, $name, $value);
 	}
 
 }

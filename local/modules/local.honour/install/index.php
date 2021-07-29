@@ -55,7 +55,12 @@ Class local_honour extends CModule{
 	function InstallFiles($arParams = array()){
 		$path = $this->GetPath()."/install/components";
 		if (\Bitrix\Main\IO\Directory::isDirectoryExists($path)){
-			CopyDirFiles($path, $_SERVER["DOCUMENT_ROOT"]."/bitrix/components", true, true);
+			CopyDirFiles($path, $_SERVER["DOCUMENT_ROOT"]."/local/components", true, true);
+		}
+
+		$path=$_SERVER['DOCUMENT_ROOT'].'/local/modules/'.$this->MODULE_ID.'/install/components';
+		if (\Bitrix\Main\IO\Directory::isDirectoryExists($path)){
+			CopyDirFiles($path, $_SERVER["DOCUMENT_ROOT"]."/local/components/bitrix", true, true);
 		}
 
 
@@ -67,11 +72,13 @@ Class local_honour extends CModule{
 	}
 
 	function UnInstallFiles(){
-		\Bitrix\Main\IO\Directory::deleteDirectory($_SERVER["DOCUMENT_ROOT"].'/bitrix/components/'.$this->MODULE_ID.'/');
+		\Bitrix\Main\IO\Directory::deleteDirectory($_SERVER["DOCUMENT_ROOT"].'/local/components/'.$this->MODULE_ID.'/');
 
 		if (\Bitrix\Main\IO\Directory::isDirectoryExists($path = $this->GetPath().'/install/files')){
 			$this->deleteArbitraryFiles();
 		}
+
+		\Bitrix\Main\IO\Directory::deleteDirectory($_SERVER["DOCUMENT_ROOT"]."local/components/bitrix/intranet.structure.honour");
 
 		return true;
 	}
