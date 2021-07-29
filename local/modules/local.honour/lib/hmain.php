@@ -10,7 +10,6 @@ use Bitrix\Iblock\PropertyTable;
 
 Localization\Loc::loadMessages(__FILE__);
 
-
 class HMain
 {
 
