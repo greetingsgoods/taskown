@@ -7,4 +7,5 @@ use Bitrix\Main\Loader;
 Loader::registerAutoLoadClasses('local.honour', [
 	'Local\Honour\ElementProperyTable' => 'lib/elementproperytable.php',
 	'Local\Honour\HMain' => 'lib/hmain.php',
+	'Local\Honour\OnIBlockPropertyBuildListHandler' => 'lib/oniblockpropertybuildlisthandler.php'
 ]);

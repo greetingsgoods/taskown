@@ -43,12 +43,24 @@ Class local_honour extends CModule{
 	}
 
 	function InstallEvents(){
-//		\Bitrix\Main\EventManager::getInstance()->registerEventHandler("main", "OnBuildGlobalMenu", $this->MODULE_ID, '\Local\Honour\EventHandlers\OnBuildGlobalMenuHandler', "handler");
+		\Bitrix\Main\EventManager::getInstance()->registerEventHandler(
+			"iblock",
+			"OnBuildGlobalMenu",
+			$this->MODULE_ID,
+			'\Local\Honour\OnIBlockPropertyBuildListHandler',
+			"GetUserTypeDescription"
+		);
 
-}
+	}
 
 	function UnInstallEvents(){
-//		\Bitrix\Main\EventManager::getInstance()->unRegisterEventHandler("main", "OnBuildGlobalMenu", $this->MODULE_ID, '\Local\Honour\EventHandlers\OnBuildGlobalMenuHandler', "handler");
+		\Bitrix\Main\EventManager::getInstance()->unRegisterEventHandler(
+			"iblock",
+			"OnBuildGlobalMenu",
+			$this->MODULE_ID,
+			'\Local\Honour\EventHandlers\OnIBlockPropertyBuildListHandler',
+			"GetUserTypeDescription"
+		);
 
 }
 
